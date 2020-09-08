@@ -2,7 +2,7 @@ pragma solidity >=0.4.25 <0.7.0;
 
 
 contract VickreyAuction {
-    address seller;
+    address payable seller;
     bool isOpen;
     uint totalBuyers;
     mapping (uint => address) buyers;
@@ -38,9 +38,8 @@ contract VickreyAuction {
         isOpen = false;
     }
 
-    
 
-    function findWinner() returns (address, uint) {
+    function findWinner() public view returns (address, uint) {
         require(isOpen == false, "Auction must be closed before winner can be found");
         uint highestPrice = 0;
         uint higherPrice = 0;
@@ -57,5 +56,11 @@ contract VickreyAuction {
           }
         }
         return (winner, higherPrice);
+    }
+
+    function makeFinalTrade() public payable {
+        if (!seller.send(msg.value)) {
+            revert();
+        }
     }
 }
