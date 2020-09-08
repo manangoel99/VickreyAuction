@@ -1,7 +1,7 @@
 pragma solidity >=0.4.25 <0.7.0;
 
 contract BiddingRing {
-    mapping (address => uint) bidderToBid;
+    mapping (uint => address) bidderToBid;
     uint numBids;
     uint[] bids;
     bool ringOn;
@@ -13,8 +13,9 @@ contract BiddingRing {
 
     function bid(uint price, address bidder) public {
         require(ringOn == true, "Ring is Closed");
-        bidderToBid[numBids++] = bidder;
+        bidderToBid[numBids] = bidder;
         bids.push(price);
+        numBids++;
     }
 
     function closeRing() public {
