@@ -1,6 +1,6 @@
 pragma solidity >=0.4.25 <0.7.0;
 
-// import "./VickreyAuction.sol";
+import "./VickreyAuction.sol";
 
 contract BiddingRing {
     uint public endOfBidding;
@@ -8,11 +8,23 @@ contract BiddingRing {
     uint public _biddingPeriod;
     uint public _revealingPeriod;
     uint public numBidders = 0;
-    // VickreyAuction public auction;
+    VickreyAuction public auction;
+    address auctionAddress;
 
     constructor (uint biddingPeriod, uint revealingPeriod) public {
         endOfBidding = now + biddingPeriod;
         endOfRevealing = endOfBidding + revealingPeriod;
+        // auctionAddress = _auction;
+        // auction = VickreyAuction(_auction);
+    }
+
+    function setAuctionAddress(address _address) public {
+        auctionAddress = _address;
+        auction = VickreyAuction(_address);
+    }
+
+    function getAuctionAddress() public view returns(address) {
+        return auctionAddress;
     }
 
     mapping(address => bytes32) public hashedBidOff;
@@ -32,7 +44,7 @@ contract BiddingRing {
     uint public nonceBid;
     uint public highBid;
 
-    function reveal(uint amount, uint nonce) public returns (address) {
+    function reveal(uint amount, uint nonce) public {
         // Following line must be uncommented
         // This function should not return anything! It is just for checking
         // require(now >= endOfBidding && now < endOfRevealing, "Reveal not performed during reveal period");
@@ -43,12 +55,15 @@ contract BiddingRing {
             highBidder = msg.sender;
             nonceBid = nonce;   
         }
+    }
+
+    function getHighest() public view returns (address) {
         return highBidder;
     }
 
 
-    // function submitToAuction() public {
-    //     require(now > endOfRevealing);
-    //     auction.bid(highBid, nonceBid);
-    // }
+    function submitToAuction() public {
+        // require(now > endOfRevealing);
+        auction.bid(keccak256(abi.encodePacked(highBid, nonceBid)));
+    }
 }

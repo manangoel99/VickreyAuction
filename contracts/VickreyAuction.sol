@@ -25,11 +25,11 @@ contract VickreyAuction {
 
     mapping(address => bytes32) public hashedBidOf;
 
-    function bid(bytes32 hash) public payable {
-        require(now < endOfBidding, "Bidding period is over");
+    function bid(bytes32 _hash) public payable {
+        // require(now < endOfBidding, "Bidding period is over");
         require(msg.sender != seller, "Seller not allowed to bid");
 
-        hashedBidOf[msg.sender] = hash;
+        hashedBidOf[msg.sender] = _hash;
         numBidders++;
         // balanceOf[msg.sender] += msg.value;
         // require(balanceOf[msg.sender] >= reservePrice);
@@ -40,7 +40,7 @@ contract VickreyAuction {
     }
 
     function reveal(uint amount, uint nonce) public {
-        require(now >= endOfBidding && now < endOfRevealing);
+        // require(now >= endOfBidding && now < endOfRevealing);
 
         require(keccak256(abi.encodePacked(amount, nonce)) == hashedBidOf[msg.sender], "No data present for this seller with given amount");
 
@@ -55,5 +55,9 @@ contract VickreyAuction {
         } else if (amount > secondBid) {
             secondBid = amount;
        }
+    }
+
+    function getHighBid() public view returns (address, uint)  {
+        return (highBidder, highBid);
     }
 }
