@@ -1,40 +1,45 @@
 pragma solidity >=0.4.25 <0.7.0;
 
+// import "./VickreyAuction.sol";
+
 contract BiddingRing {
-    mapping (uint => address) bidderToBid;
-    uint numBids;
-    uint[] bids;
-    bool ringOn;
+    uint public endOfBidding;
+    uint public endOfRevealing;
+    uint public _biddingPeriod;
+    uint public _revealingPeriod;
+    uint public numBidders = 0;
+    // VickreyAuction public auction;
 
-    constructor () public {
-        numBids = 0;
-        ringOn = true;
+    constructor (uint biddingPeriod, uint revealingPeriod) public {
+        endOfBidding = now + biddingPeriod;
+        endOfRevealing = endOfBidding + revealingPeriod;
     }
 
-    function bid(uint price, address bidder) public {
-        require(ringOn == true, "Ring is Closed");
-        bidderToBid[numBids] = bidder;
-        bids.push(price);
-        numBids++;
+    mapping(address => bytes32) public hashedBidOff;
+
+    function bid(uint price, uint nonce) public payable {
+        require(now < endOfBidding, "Bidding Period is over");
+        bytes32 hashed = keccak256(abi.encodePacked(price, nonce));
+        hashedBidOff[msg.sender] = hashed;
+        numBidders++;
     }
 
-    function closeRing() public {
-        require(ringOn == true, "Ring Already Closed");
-        ringOn = false;
-    }
+    address public highBidder = msg.sender;
+    uint public nonceBid;
+    uint public highBid;
 
-    function findBestBid() public view returns (address, uint) {
-        require(ringOn == false, "Bidding Ring is still going on");
-
-        uint highestPrice = 0;
-        address winner;
-
-        for (uint i = 0; i < bids.length; i++) {
-            if (highestPrice <= bids[i]) {
-                highestPrice = bids[i];
-                winner = bidderToBid[i];
-            }
+    function reveal(uint amount, uint nonce) public returns (address) {
+        require(now >= endOfBidding && now < endOfRevealing, "Reveal not performed during reveal period");
+        require(keccak256(abi.encodePacked(amount, nonce)) == hashedBidOff[msg.sender], "This User has not made this bid");
+        if (amount > highBid) {
+            highBid = amount;
+            highBidder = msg.sender;
+            nonceBid = nonce;   
         }
-        return (winner, highestPrice);
     }
+
+    // function submitToAuction() public {
+    //     require(now > endOfRevealing);
+    //     auction.bid(highBid, nonceBid);
+    // }
 }
