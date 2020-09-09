@@ -7,7 +7,7 @@ module.exports = function(deployer) {
   deployer.deploy(ConvertLib);
   deployer.link(ConvertLib, MetaCoin);
   deployer.deploy(MetaCoin);
-  deployer.deploy(VickreyAuction, 10, 10);
-  deployer.link(BiddingRing, VickreyAuction);
+  deployer.deploy(VickreyAuction);
+  deployer.link(VickreyAuction, BiddingRing);
   deployer.deploy(BiddingRing, 10, 10);
 };
