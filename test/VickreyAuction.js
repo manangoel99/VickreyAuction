@@ -23,30 +23,37 @@ contract('Test for Vickery Auction', async (accounts) => {
         let bid = web3.eth.abi.encodeParameters(['uint', 'uint'], [10, 10]);
         await instance.bid.sendTransaction(web3.utils.keccak256(bid, {encoding: "hex"}), {from: accounts[4], gas: 3000000});
         
-        let bid1 = web3.eth.abi.encodeParameters(['uint', 'uint'], [20, 10]);
+        let bid1 = web3.eth.abi.encodeParameters(['uint', 'uint'], [40, 10]);
         await instance.bid.sendTransaction(web3.utils.keccak256(bid1, {encoding: "hex"}), {from: accounts[5], gas: 3000000});
         
-        let bid2 = web3.eth.abi.encodeParameters(['uint', 'uint'], [40, 10]);
+        let bid2 = web3.eth.abi.encodeParameters(['uint', 'uint'], [20, 10]);
         await instance.bid.sendTransaction(web3.utils.keccak256(bid2, {encoding: "hex"}), {from: accounts[6], gas: 3000000});
 
-        // await instance.bid.sendTransaction(50, 10, {from: accounts[1], gas: 3000000});
-        // await instance.bid.sendTransaction(20, 10, {from: accounts[2], gas: 3000000});
-        // await instance.bid.sendTransaction(10, 10, {from: accounts[3], gas: 3000000});
-		await instance.reveal.sendTransaction(10, 10, {from: accounts[4], gas: 3000000});
-		await instance.reveal.sendTransaction(20, 10, {from: accounts[5], gas: 3000000});
-		await instance.reveal.sendTransaction(40, 10, {from: accounts[6], gas: 3000000});
-		// let count1 = await instance.getNumBidders.call({from: accounts[1]});
-        // assert.equal(count1.valueOf(), 3, "Please check function");
+
+        await instance.reveal.sendTransaction(10, {from: accounts[4], gas: 3000000, value:10});
+        let highestBidder1 = await instance.getHighest.call();
+        assert.equal(highestBidder1.valueOf(), accounts[4], "Please Check Bid");
+        let bal1 = await instance.getBalance.call();
+        assert.equal(bal1[1].valueOf(), 10, "HAHA1");
+
+        await instance.reveal.sendTransaction(10, {from: accounts[5], gas: 3000000, value:40});
+        let highestBidder2 = await instance.getHighest.call();
+        assert.equal(highestBidder2.valueOf(), accounts[5], "Please Check Bid");
+        let bal2 = await instance.getBalance.call();
+        assert.equal(bal2[1].valueOf(), 40, "HAHA1");
+
+        await instance.reveal.sendTransaction(10, {from: accounts[6], gas: 3000000, value:20});
+        let highestBidder3 = await instance.getHighest.call();
+        assert.equal(highestBidder3.valueOf(), accounts[5], "Please Check Bid");
+        let bal3 = await instance.getBalance.call();
+        assert.equal(bal3[1].valueOf(), 40, "HAHA1");
         let val = await instance.getBid.call();
-        assert.equal(val[0].valueOf(), accounts[6], "Please check function 2");
+        assert.equal(val[0].valueOf(), accounts[5], "Please check function 2");
         assert.equal(val[1].valueOf(), 20, "Please check function 2");
 
-		// let highestBidder = await instance.reveal.call(10, 10, {from: accounts[1], gas: 3000000});
-        // assert.equal(highestBidder.valueOf(), accounts[1], "Please Check Bid");
-        // let highestBidder1 = await instance.reveal.call(20, 10, {from: accounts[2], gas: 3000000});
-        // assert.equal(highestBidder1.valueOf(), accounts[2], "Please Check Bid");
-        // let highestBidder2 = await instance.reveal.call(40, 10, {from: accounts[3], gas: 3000000});
-        // assert.equal(highestBidder2.valueOf(), accounts[3], "Please Check Bid");
-
+        let highestBidder4 = await instance.getHighest.call();
+        await instance.claimBalance.sendTransaction({from: highestBidder4, gas: 300000});
+        let bal4 = await instance.getBalance.call();
+        assert.equal(bal4[1].valueOf(), 20, "HAHA4");
     });
 });

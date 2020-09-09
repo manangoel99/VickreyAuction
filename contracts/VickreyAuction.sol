@@ -2,16 +2,22 @@ pragma solidity >=0.4.25 <0.7.0;
 
 
 contract VickreyAuction {
-    address seller;
+    address payable seller;
 
-    address public highBidder;
+    address payable public highBidder;
     uint public highBid;
     uint public secondBid;
+    uint public endOfBidding;
+    uint public endOfRevealing;
     uint public numBidders = 0;
+    uint public numRevealed = 0;
 
     mapping(address => bool) public revealed;
 
-    constructor () public {
+    constructor (uint biddingPeriod, uint revealingPeriod) public {
+        endOfBidding = now + biddingPeriod;
+        endOfRevealing = endOfBidding + revealingPeriod;
+        
         seller = msg.sender;
         highBidder = seller;
         highBid = 0;
@@ -19,17 +25,12 @@ contract VickreyAuction {
     }
 
     mapping(address => bytes32) public hashedBidOf;
-    // mapping(address => uint) public balanceOf;
 
-
-    function bid(bytes32 hash) public payable {
-        // require(now < endOfBidding, "Bidding period is over");
+    function bid(bytes32 hash) public {
+        require(now < endOfBidding, "Bidding period is over");
         require(msg.sender != seller, "Seller not allowed to bid");
-
         hashedBidOf[msg.sender] = hash;
         numBidders++;
-        // balanceOf[msg.sender] += msg.value;
-        // require(balanceOf[msg.sender] >= reservePrice);
     }
 
     function getNumBidders() public view returns(uint) {
@@ -40,21 +41,44 @@ contract VickreyAuction {
         return (highBidder, secondBid);
     }
 
-    function reveal(uint amount, uint nonce) public {
+    function getBalance() public view returns(address, uint){
+        return (address(this), address(this).balance);
+    }
+
+    function getHighest() public view returns (address) {
+        return highBidder;
+    }
+
+    function reveal(uint nonce) public payable {
         // require(now >= endOfBidding && now < endOfRevealing);
-
+        uint amount = msg.value;
+        
         require(keccak256(abi.encodePacked(amount, nonce)) == hashedBidOf[msg.sender], "No data present for this seller with given amount");
-
         require(!revealed[msg.sender], "Bidder has already revealed the bid");
+        
         revealed[msg.sender] = true;
-
-        if (amount >= highBid) {
+        numRevealed++;
+        
+        if (numRevealed == 1){
+            highBid = amount;
+            secondBid = amount;
+            highBidder = msg.sender;
+        }
+        else if (amount >= highBid){
+            highBidder.transfer(highBid);
             secondBid = highBid;
             highBid = amount;
             highBidder = msg.sender;
-
-        } else if (amount > secondBid) {
+        }
+        else if (amount > secondBid) {
             secondBid = amount;
-       }
+            msg.sender.transfer(secondBid);
+        }
+    }
+    
+    function claimBalance() public payable {
+        require(msg.sender == highBidder, "Only highest bidder can claim");
+        // require(now >= endOfRevealing, "Can only be claimed after end of revealing period");
+        msg.sender.transfer(highBid - secondBid);
     }
 }
