@@ -17,9 +17,9 @@ contract BiddingRing {
 
     mapping(address => bytes32) public hashedBidOff;
 
-    function bid(uint price, uint nonce) public payable {
+    function bid(bytes32 hashed) public payable {
         require(now < endOfBidding, "Bidding Period is over");
-        bytes32 hashed = keccak256(abi.encodePacked(price, nonce));
+        // bytes32 hashed = keccak256(abi.encodePacked(price, nonce));
         hashedBidOff[msg.sender] = hashed;
         numBidders++;
     }
@@ -37,7 +37,6 @@ contract BiddingRing {
         // This function should not return anything! It is just for checking
         // require(now >= endOfBidding && now < endOfRevealing, "Reveal not performed during reveal period");
         // bytes memory encoding = abi.encodePacked(amount, nonce);
-        // require(keccak256(abi.encode(amount)) == hashedBidOff[msg.sender]);
         require(keccak256(abi.encodePacked(amount, nonce)) == hashedBidOff[msg.sender], "This User has not made this bid");
         if (amount > highBid) {
             highBid = amount;
