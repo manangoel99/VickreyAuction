@@ -4,9 +4,6 @@ pragma solidity >=0.4.25 <0.7.0;
 contract VickreyAuction {
     address seller;
 
-    uint public endOfBidding;
-    uint public endOfRevealing;
-
     address public highBidder;
     uint public highBid;
     uint public secondBid;
@@ -14,9 +11,7 @@ contract VickreyAuction {
 
     mapping(address => bool) public revealed;
 
-    constructor (uint biddingPeriod, uint revealingPeriod) public {
-        endOfBidding = now + biddingPeriod;
-        endOfRevealing = endOfBidding + revealingPeriod;
+    constructor () public {
         seller = msg.sender;
         highBidder = seller;
         highBid = 0;
@@ -24,12 +19,14 @@ contract VickreyAuction {
     }
 
     mapping(address => bytes32) public hashedBidOf;
+    // mapping(address => uint) public balanceOf;
 
-    function bid(bytes32 _hash) public payable {
+
+    function bid(bytes32 hash) public payable {
         // require(now < endOfBidding, "Bidding period is over");
         require(msg.sender != seller, "Seller not allowed to bid");
 
-        hashedBidOf[msg.sender] = _hash;
+        hashedBidOf[msg.sender] = hash;
         numBidders++;
         // balanceOf[msg.sender] += msg.value;
         // require(balanceOf[msg.sender] >= reservePrice);
@@ -37,6 +34,10 @@ contract VickreyAuction {
 
     function getNumBidders() public view returns(uint) {
         return numBidders;
+    }
+
+    function getBid() public view returns(address, uint) {
+        return (highBidder, secondBid);
     }
 
     function reveal(uint amount, uint nonce) public {
@@ -55,9 +56,5 @@ contract VickreyAuction {
         } else if (amount > secondBid) {
             secondBid = amount;
        }
-    }
-
-    function getHighBid() public view returns (address, uint)  {
-        return (highBidder, highBid);
     }
 }
