@@ -2,65 +2,58 @@ pragma solidity >=0.4.25 <0.7.0;
 
 
 contract VickreyAuction {
-    address payable seller;
-    bool isOpen;
-    uint totalBuyers;
-    mapping (uint => address) buyers;
-    uint[] offers;
-    uint starting;
+    address seller;
 
-    constructor(uint _starting) public {
+    uint public endOfBidding;
+    uint public endOfRevealing;
+
+    address public highBidder;
+    uint public highBid;
+    uint public secondBid;
+    uint public numBidders = 0;
+
+    mapping(address => bool) public revealed;
+
+    constructor (uint biddingPeriod, uint revealingPeriod) public {
+        endOfBidding = now + biddingPeriod;
+        endOfRevealing = endOfBidding + revealingPeriod;
         seller = msg.sender;
-        isOpen = true;
-        totalBuyers = 0;
-        starting = _starting;
+        highBidder = seller;
+        highBid = 0;
+        secondBid = 0;
     }
 
-    function getTotalBuyers() public view returns (uint) {
-        return totalBuyers;
+    mapping(address => bytes32) public hashedBidOf;
+
+    function bid(bytes32 hash) public payable {
+        require(now < endOfBidding, "Bidding period is over");
+        require(msg.sender != seller, "Seller not allowed to bid");
+
+        hashedBidOf[msg.sender] = hash;
+        numBidders++;
+        // balanceOf[msg.sender] += msg.value;
+        // require(balanceOf[msg.sender] >= reservePrice);
     }
 
-    function getIsOpen() public view returns (bool) {
-        return isOpen;
+    function getNumBidders() public view returns(uint) {
+        return numBidders;
     }
 
-    function bid(uint price, address buyer) public {
-        require(isOpen == true, "Auction must be open for bidding");
-        require(starting < price, "Bidding value should be greater than starting value");
+    function reveal(uint amount, uint nonce) public {
+        require(now >= endOfBidding && now < endOfRevealing);
 
-        buyers[totalBuyers] = buyer;
-        offers.push(price);
-        totalBuyers++;
-    }
+        require(keccak256(abi.encodePacked(amount, nonce)) == hashedBidOf[msg.sender], "No data present for this seller with given amount");
 
-    function closeAuction() public {
-        require(msg.sender == seller, "Auction can be closed only by the seller");
-        isOpen = false;
-    }
+        require(!revealed[msg.sender], "Bidder has already revealed the bid");
+        revealed[msg.sender] = true;
 
+        if (amount >= highBid) {
+            secondBid = highBid;
+            highBid = amount;
+            highBidder = msg.sender;
 
-    function findWinner() public view returns (address, uint) {
-        require(isOpen == false, "Auction must be closed before winner can be found");
-        uint highestPrice = 0;
-        uint higherPrice = 0;
-        address winner;
-        for(uint i = 0; i < offers.length; i++){
-          if(highestPrice < offers[i]){
-            higherPrice = highestPrice;
-            highestPrice = offers[i];
-            winner = buyers[i];
-          }else{
-            if(higherPrice < offers[i]){
-              higherPrice = offers[i];
-            }
-          }
-        }
-        return (winner, higherPrice);
-    }
-
-    function makeFinalTrade() public payable {
-        if (!seller.send(msg.value)) {
-            revert();
-        }
+        } else if (amount > secondBid) {
+            secondBid = amount;
+       }
     }
 }
