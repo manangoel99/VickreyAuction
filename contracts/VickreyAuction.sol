@@ -33,6 +33,13 @@ contract VickreyAuction {
         numBidders++;
     }
 
+    function getNumRevealed() public view returns(uint) {
+        return numRevealed;
+    }
+
+    function getSeller() public view returns(address) {
+        return seller;
+    }
     function getNumBidders() public view returns(uint) {
         return numBidders;
     }
@@ -77,8 +84,8 @@ contract VickreyAuction {
     }
     
     function claimBalance() public payable {
-        require(msg.sender == highBidder, "Only highest bidder can claim");
+        require(tx.origin == highBidder, "Only highest bidder can claim");
         // require(now >= endOfRevealing, "Can only be claimed after end of revealing period");
-        msg.sender.transfer(highBid - secondBid);
+        tx.origin.transfer(highBid - secondBid);
     }
 }

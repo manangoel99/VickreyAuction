@@ -60,6 +60,9 @@ contract BiddingRing {
             highBidder = msg.sender;
             nonceBid = nonce;   
         }
+        else {
+            msg.sender.transfer(msg.value);
+        }
     }
 
     function getHighest() public view returns (address) {
@@ -70,5 +73,9 @@ contract BiddingRing {
     function submitToAuction() public {
         // require(now > endOfRevealing);
         auction.bid(keccak256(abi.encodePacked(highBid, nonceBid)));
+    }
+
+    function revealToAuction() public payable {
+        auction.reveal.value(highBid)(nonceBid);
     }
 }
