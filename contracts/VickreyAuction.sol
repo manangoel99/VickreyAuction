@@ -27,8 +27,8 @@ contract VickreyAuction {
     mapping(address => bytes32) public hashedBidOf;
 
     function bid(bytes32 hash) public {
-        require(now < endOfBidding, "Bidding period is over");
-        require(msg.sender != seller, "Seller not allowed to bid");
+        // require(now < endOfBidding, "Bidding period is over");
+        // require(msg.sender != seller, "Seller not allowed to bid");
         hashedBidOf[msg.sender] = hash;
         numBidders++;
     }
@@ -86,11 +86,11 @@ contract VickreyAuction {
     }
     
     function claimBalance() public payable {
-        require(tx.origin == highBidder, "Only highest bidder can claim");
+        require(msg.sender == highBidder, "Only highest bidder can claim");
         // require(now >= endOfRevealing, "Can only be claimed after end of revealing period");
         if(numRevealed == 1){
             secondBid = highBid;
         }
-        tx.origin.transfer(highBid - secondBid);
+        msg.sender.transfer(highBid - secondBid);
     }
 }
