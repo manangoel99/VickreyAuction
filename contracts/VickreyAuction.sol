@@ -68,7 +68,6 @@ contract VickreyAuction {
         
         if (numRevealed == 1){
             highBid = amount;
-            secondBid = amount;
             highBidder = msg.sender;
         }
         else if (amount >= highBid){
@@ -81,11 +80,17 @@ contract VickreyAuction {
             secondBid = amount;
             msg.sender.transfer(secondBid);
         }
+        else{
+            msg.sender.transfer(amount);
+        }
     }
     
     function claimBalance() public payable {
         require(tx.origin == highBidder, "Only highest bidder can claim");
         // require(now >= endOfRevealing, "Can only be claimed after end of revealing period");
+        if(numRevealed == 1){
+            secondBid = highBid;
+        }
         tx.origin.transfer(highBid - secondBid);
     }
 }
