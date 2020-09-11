@@ -95,7 +95,7 @@ contract('Test for Bidding Ring', async (accounts) => {
 
         // await auction.reveal.sendTransaction(10, {from: accounts[5], gas: 3000000, value: 30});
 
-        await instance.revealToAuction.call();
+        await instance.revealToAuction.sendTransaction();
         let bal = await auction.getNumRevealed.call();
         assert.equal(bal.valueOf(), 1, "Not matching");
         // await auction.reveal.sendTransaction(10, {from: instance.address, gas: 3000000, value: 40});
