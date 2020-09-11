@@ -39,7 +39,7 @@ contract VickreyAuction {
 
     The function takes a bytes32 object which is a hashed value of the bid mapped to the bidder address
 
-    @param hashed Hased value of the bidding amount along with a user defined key
+    @param hash Hased value of the bidding amount along with a user defined key
      */
     function bid(bytes32 hash) public {
         require(now < endOfBidding, "Bidding period is over");
